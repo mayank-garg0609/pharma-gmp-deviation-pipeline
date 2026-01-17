@@ -14,7 +14,7 @@ class CustomLLM(BaseLLM):
         max_tokens: int = 4000
     ):
         super().__init__(model=model, temperature=temperature)
-        self.base_url = base_url.rstrip("/")
+        self.base_url = base_url.rstrip("/")+"/chat"
         self.api_key = api_key
         self.timeout = timeout
         self.max_tokens = max_tokens
