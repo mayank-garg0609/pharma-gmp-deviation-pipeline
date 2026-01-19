@@ -7,6 +7,7 @@ from gmp_dev_generator import deviation_generation
 from brainstorming import brain
 from  add_content import add_data
 
+
 app = FastAPI(
     title="GMP Deviation Brainstorming API",
     description="API for GMP deviation ingestion and expert brainstorming",
@@ -80,4 +81,5 @@ def generate_gmp_deviation(request: GMPResponse):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0",  port=int(os.environ.get("PORT", 3000)))
+
 
