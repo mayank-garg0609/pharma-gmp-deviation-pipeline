@@ -113,33 +113,69 @@
 
 
 
+# from abc import ABC, abstractmethod
+# from typing import List
+# from sentence_transformers import SentenceTransformer
+
+
+# class Embedder(ABC):
+#     @abstractmethod
+#     def embed(self, texts: List[str]) -> List[list]:
+#         pass
+
+
+# class SentenceTransformerEmbedder(Embedder):
+#     def __init__(
+#         self,
+#         model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+#     ):
+#         self.model = SentenceTransformer(model_name)
+
+#     def embed(self, texts: List[str]) -> List[list]:
+#         if not texts:
+#             return []
+
+#         embeddings = self.model.encode(
+#             texts,
+#             convert_to_numpy=True,
+#             normalize_embeddings=True
+#         )
+
+#         # Match OpenAI-style return shape: List[list]
+#         return embeddings.tolist()
+
+
 from abc import ABC, abstractmethod
 from typing import List
-from sentence_transformers import SentenceTransformer
-
+import requests
+import os
 
 class Embedder(ABC):
     @abstractmethod
     def embed(self, texts: List[str]) -> List[list]:
         pass
 
-
 class SentenceTransformerEmbedder(Embedder):
-    def __init__(
-        self,
-        model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
-    ):
-        self.model = SentenceTransformer(model_name)
+    def __init__(self, api_url: str | None = None):
+        api_url = api_url or os.getenv("CUSTOM_LLM_URL")
+
+        if not api_url:
+            raise ValueError(
+                "CUSTOM_LLM_URL is not set. "
+                "Set it as an environment variable or pass api_url explicitly."
+            )
+
+        self.api_url = api_url.rstrip("/") + "/embed"
 
     def embed(self, texts: List[str]) -> List[list]:
         if not texts:
             return []
 
-        embeddings = self.model.encode(
-            texts,
-            convert_to_numpy=True,
-            normalize_embeddings=True
+        response = requests.post(
+            self.api_url,
+            json={"texts": texts},
+            timeout=60
         )
 
-        # Match OpenAI-style return shape: List[list]
-        return embeddings.tolist()
+        response.raise_for_status()
+        return response.json()["embeddings"]

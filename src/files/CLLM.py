@@ -1,6 +1,7 @@
 from crewai import BaseLLM
 from typing import Any, Dict, List, Optional, Union
 import requests
+import os
 
 
 class CustomLLM(BaseLLM):
@@ -14,7 +15,16 @@ class CustomLLM(BaseLLM):
         max_tokens: int = 4000
     ):
         super().__init__(model=model, temperature=temperature)
-        self.base_url = base_url.rstrip("/")+"/chat"
+        # Handle None or empty base_url by loading from environment
+        if not base_url:
+            base_url = os.getenv("CUSTOM_LLM_URL", "http://localhost")
+        
+        # Remove trailing slash and add /chat if not already present
+        base_url = base_url.rstrip("/")
+        if not base_url.endswith("/chat"):
+            base_url = base_url + "/chat"
+        
+        self.base_url = base_url
         self.api_key = api_key
         self.timeout = timeout
         self.max_tokens = max_tokens
