@@ -69,10 +69,53 @@
 #         return all_embeddings
 
 
-import os
-import requests
-from typing import List
+# import os
+# import requests
+# from typing import List
+# from abc import ABC, abstractmethod
+
+
+# class Embedder(ABC):
+#     @abstractmethod
+#     def embed(self, texts: List[str]) -> List[list]:
+#         pass
+
+
+# class SentenceTransformerEmbedder(Embedder):
+#     def __init__(self, timeout: int = 30):
+#         endpoint_url = os.getenv("CUSTOM_LLM_URL")
+
+#         if not endpoint_url:
+#             raise EnvironmentError(
+#                 "CUSTOM_LLM_URL environment variable is not set"
+#             )
+
+#         self.endpoint_url = endpoint_url.rstrip("/")
+#         self.timeout = timeout
+
+#     def embed(self, texts: List[str]) -> List[list]:
+#         if not texts:
+#             return []
+
+#         response = requests.post(
+#             f"{self.endpoint_url}/embed",
+#             json={"texts": texts},
+#             timeout=self.timeout
+#         )
+
+#         response.raise_for_status()
+#         data = response.json()
+
+#         if "error" in data:
+#             raise RuntimeError(data["error"])
+
+#         return data["embeddings"]
+
+
+
 from abc import ABC, abstractmethod
+from typing import List
+from sentence_transformers import SentenceTransformer
 
 
 class Embedder(ABC):
@@ -82,31 +125,21 @@ class Embedder(ABC):
 
 
 class SentenceTransformerEmbedder(Embedder):
-    def __init__(self, timeout: int = 30):
-        endpoint_url = os.getenv("CUSTOM_LLM_URL")
-
-        if not endpoint_url:
-            raise EnvironmentError(
-                "CUSTOM_LLM_URL environment variable is not set"
-            )
-
-        self.endpoint_url = endpoint_url.rstrip("/")
-        self.timeout = timeout
+    def __init__(
+        self,
+        model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    ):
+        self.model = SentenceTransformer(model_name)
 
     def embed(self, texts: List[str]) -> List[list]:
         if not texts:
             return []
 
-        response = requests.post(
-            f"{self.endpoint_url}/embed",
-            json={"texts": texts},
-            timeout=self.timeout
+        embeddings = self.model.encode(
+            texts,
+            convert_to_numpy=True,
+            normalize_embeddings=True
         )
 
-        response.raise_for_status()
-        data = response.json()
-
-        if "error" in data:
-            raise RuntimeError(data["error"])
-
-        return data["embeddings"]
+        # Match OpenAI-style return shape: List[list]
+        return embeddings.tolist()
