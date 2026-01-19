@@ -7,6 +7,7 @@ from src.gmp_dev_generator import deviation_generation
 from src.brainstorming import brain
 from src.add_content import add_data
 
+
 app = FastAPI(
     title="GMP Deviation Brainstorming API",
     description="API for GMP deviation ingestion and expert brainstorming",
